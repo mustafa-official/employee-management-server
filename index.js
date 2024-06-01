@@ -27,6 +27,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const userCollection = client.db("assignmentTwelveDB").collection('users');
+    const taskCollection = client.db("assignmentTwelveDB").collection('tasks');
 
 
     // jwt related api 
@@ -67,6 +68,28 @@ async function run() {
       next()
     }
 
+
+    // get task by (employee) user 
+    app.get('/task/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const result = await taskCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    //task
+    app.post('/add-task', verifyToken, async (req, res) => {
+      const task = req.body;
+      const result = await taskCollection.insertOne(task);
+      res.send(result);
+    })
+
+    //get a user by email
+    app.get('/user/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await userCollection.findOne({ email });
+      res.send(result);
+    })
 
     // users role save
     app.post('/users', async (req, res) => {
