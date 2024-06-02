@@ -1,9 +1,10 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 //middleware
@@ -28,6 +29,7 @@ async function run() {
     await client.connect();
     const userCollection = client.db("assignmentTwelveDB").collection('users');
     const taskCollection = client.db("assignmentTwelveDB").collection('tasks');
+    const paymentCollection = client.db("assignmentTwelveDB").collection('payments');
 
 
     // jwt related api 
@@ -69,6 +71,29 @@ async function run() {
     }
 
 
+    //payment intent
+    app.post('/create-payment-intent', async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      })
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    })
+
+    //save to DB all payment history
+    app.post('/payments', async (req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result);
+    })
+
+
     // get task by (employee) user 
     app.get('/task/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
@@ -91,6 +116,27 @@ async function run() {
       res.send(result);
     })
 
+
+    //employee status update
+    app.patch('/update-status/:id', async (req, res) => {
+      const id = req.params.id;
+      const newStatus = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateStatus = {
+        $set: {
+          status: newStatus.status
+        }
+      }
+      const result = await userCollection.updateOne(filter, updateStatus);
+      res.send(result);
+    })
+
+    //get all employee info
+    app.get('/all-employee', async (req, res) => {
+      const query = { role: 'employee' }
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    })
     // users role save
     app.post('/users', async (req, res) => {
       const user = req.body;
