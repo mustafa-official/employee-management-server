@@ -87,6 +87,8 @@ async function run() {
     })
 
 
+
+
     //get specific employee in payment collection
     app.get('/employee-stats/:email', async (req, res) => {
       const email = req.params.email;
@@ -102,6 +104,23 @@ async function run() {
       res.send(result);
     })
 
+    //get all task
+    app.get('/all-task', async (req, res) => {
+      const name = req.query.name;
+      let result;
+      if (name) {
+        result = await taskCollection.find({ name: name }).toArray();
+      } else {
+        result = await taskCollection.find().toArray();
+      }
+      res.send(result);
+    })
+
+    //get all task user name for dropdown
+    app.get('/task/username', async (req, res) => {
+      const result = await taskCollection.find().toArray();
+      res.send(result);
+    })
 
     // get task by (employee) user 
     app.get('/task/:email', verifyToken, async (req, res) => {
