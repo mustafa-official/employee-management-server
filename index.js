@@ -86,6 +86,15 @@ async function run() {
       })
     })
 
+
+    //get specific employee in payment collection
+    app.get('/employee-stats/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email, payment: 'Successful' };
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result);
+    })
+
     //save to DB all payment history
     app.post('/payments', async (req, res) => {
       const payment = req.body;
