@@ -107,12 +107,15 @@ async function run() {
     //get all task
     app.get('/all-task', async (req, res) => {
       const name = req.query.name;
-      let result;
+      const month = req.query.month;
+      let query = {};
       if (name) {
-        result = await taskCollection.find({ name: name }).toArray();
-      } else {
-        result = await taskCollection.find().toArray();
+        query.name = name
       }
+      if (month) {
+        query.date = { $regex: `^${month}/` }
+      }
+      const result = await taskCollection.find(query).toArray();
       res.send(result);
     })
 
