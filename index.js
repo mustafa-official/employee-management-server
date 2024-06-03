@@ -87,7 +87,22 @@ async function run() {
     })
 
 
+    //get all payment history by email for pagination
+    app.get('/payment-history/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const page = parseInt(req.query.page) - 1;
+      const size = parseInt(req.query.size);
+      // console.log(page, size);
+      const result = await paymentCollection.find({ email }).skip(page * size).limit(size).toArray();
+      res.send(result);
+    })
 
+    //get length payment history by email for pagination
+    app.get('/payment-count/:email', async (req, res) => {
+      const email = req.params.email;
+      const count = await paymentCollection.countDocuments({ email: email });
+      res.send({ count });
+    })
 
     //get specific employee in payment collection
     app.get('/employee-stats/:email', async (req, res) => {
