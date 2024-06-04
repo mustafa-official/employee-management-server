@@ -86,6 +86,60 @@ async function run() {
       })
     })
 
+    //salary update hr, employee by admin
+    app.patch('/update-salary/:id', async (req, res) => {
+      const id = req.params.id;
+      const newSalary = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          salary: newSalary.salary
+        }
+      }
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+    //make employee to hr by admin
+    app.patch('/make-hr/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const newHR = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: newHR.role,
+          status: newHR.status
+        }
+      }
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+    //employee fired by admin 
+    app.patch('/employee-fired/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const newField = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          isFired: newField.isFired
+        }
+      }
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+    // get all employee in admin page
+    app.get('/admin/employees', verifyToken, verifyAdmin, async (req, res) => {
+      const query = {
+        $or: [
+          { role: 'employee', status: true },
+          { role: 'hr', status: false, }
+        ]
+      };
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    })
 
     //get all payment history by email for pagination
     app.get('/payment-history/:email', verifyToken, async (req, res) => {
@@ -188,9 +242,18 @@ async function run() {
       const user = req.body;
       const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
+
+
+      // const existingFired = await userCollection.findOne({ isFired: true });
+      // if (existingFired) {
+      //   return res.status(403).send({ message: 'unauthorize access' })
+      // }
+
+
       if (existingUser) {
         return res.send({ message: "User already exists", insertedId: 'created' })
       }
+
       const result = await userCollection.insertOne(user);
       res.send(result);
     })
