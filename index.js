@@ -30,6 +30,7 @@ async function run() {
     const userCollection = client.db("assignmentTwelveDB").collection('users');
     const taskCollection = client.db("assignmentTwelveDB").collection('tasks');
     const paymentCollection = client.db("assignmentTwelveDB").collection('payments');
+    const messageCollection = client.db("assignmentTwelveDB").collection('messages');
 
 
     // jwt related api 
@@ -84,6 +85,20 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret
       })
+    })
+
+
+    //get all messages by admin
+    app.get('/messages', verifyToken, async (req, res) => {
+      const result = await messageCollection.find().toArray();
+      res.send(result);
+    })
+
+    // save message from contact page 
+    app.post('/message', async (req, res) => {
+      const contact = req.body;
+      const result = await messageCollection.insertOne(contact);
+      res.send(result);
     })
 
     //salary update hr, employee by admin
