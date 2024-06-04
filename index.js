@@ -173,6 +173,13 @@ async function run() {
       res.send({ count });
     })
 
+    //specific payments user when click pay button
+    app.get('/usersPaymentsInfo/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await paymentCollection.find({ email }).toArray();
+      res.send(result)
+    })
+
     //get specific employee in payment collection
     app.get('/employee-stats/:email', async (req, res) => {
       const email = req.params.email;
