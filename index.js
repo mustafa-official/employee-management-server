@@ -88,6 +88,17 @@ async function run() {
     })
 
 
+    //  check user is Fired 
+    app.post('/check-fired', async (req, res) => {
+      const { email } = req.body;
+      const user = await userCollection.findOne({ email: email });
+      if (user && user.isFired) {
+        res.status(200).send({ isFired: true })
+      } else {
+        res.status(200).send({ isFired: false })
+      }
+    })
+
     //get all messages by admin
     app.get('/messages', verifyToken, async (req, res) => {
       const result = await messageCollection.find().toArray();
