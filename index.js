@@ -88,7 +88,7 @@ async function run() {
     })
 
 
-    //  check user is Fired 
+    //  check user is Fired (when any user login)
     app.post('/check-fired', async (req, res) => {
       const { email } = req.body;
       const user = await userCollection.findOne({ email: email });
@@ -100,12 +100,12 @@ async function run() {
     })
 
     //get all messages by admin
-    app.get('/messages', verifyToken, async (req, res) => {
+    app.get('/messages', verifyToken, verifyAdmin, async (req, res) => {
       const result = await messageCollection.find().toArray();
       res.send(result);
     })
 
-    // save message from contact page 
+    // save message from contact page (public) any user can send message
     app.post('/message', async (req, res) => {
       const contact = req.body;
       const result = await messageCollection.insertOne(contact);
@@ -113,7 +113,7 @@ async function run() {
     })
 
     //salary update hr, employee by admin
-    app.patch('/update-salary/:id', async (req, res) => {
+    app.patch('/update-salary/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const newSalary = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -127,7 +127,7 @@ async function run() {
     })
 
     //make employee to hr by admin
-    app.patch('/make-hr/:id', verifyToken, async (req, res) => {
+    app.patch('/make-hr/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const newHR = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -142,7 +142,7 @@ async function run() {
     })
 
     //employee fired by admin 
-    app.patch('/employee-fired/:id', verifyToken, async (req, res) => {
+    app.patch('/employee-fired/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const newField = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -178,21 +178,21 @@ async function run() {
     })
 
     //get length payment history by email for pagination
-    app.get('/payment-count/:email', async (req, res) => {
+    app.get('/payment-count/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const count = await paymentCollection.countDocuments({ email: email });
       res.send({ count });
     })
 
     //specific payments user when click pay button
-    app.get('/usersPaymentsInfo/:email', async (req, res) => {
+    app.get('/usersPaymentsInfo/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const result = await paymentCollection.find({ email }).toArray();
       res.send(result)
     })
 
     //get specific employee in payment collection
-    app.get('/employee-stats/:email', async (req, res) => {
+    app.get('/employee-stats/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email, payment: 'Successful' };
       const result = await paymentCollection.find(query).toArray();
@@ -207,7 +207,7 @@ async function run() {
     })
 
     //get all task
-    app.get('/all-task', async (req, res) => {
+    app.get('/all-task', verifyToken, async (req, res) => {
       const name = req.query.name;
       const month = req.query.month;
       let query = {};
@@ -222,7 +222,7 @@ async function run() {
     })
 
     //get all task user name for dropdown
-    app.get('/task/username', async (req, res) => {
+    app.get('/task/username', verifyToken, async (req, res) => {
       const result = await taskCollection.find().toArray();
       res.send(result);
     })
@@ -243,7 +243,7 @@ async function run() {
     })
 
     //get a user by email
-    app.get('/user/:email', async (req, res) => {
+    app.get('/user/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const result = await userCollection.findOne({ email });
       res.send(result);
@@ -251,7 +251,7 @@ async function run() {
 
 
     //employee status update
-    app.patch('/update-status/:id', async (req, res) => {
+    app.patch('/update-status/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const newStatus = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -265,7 +265,7 @@ async function run() {
     })
 
     //get all employee info
-    app.get('/all-employee', async (req, res) => {
+    app.get('/all-employee', verifyToken, async (req, res) => {
       const query = { role: 'employee' }
       const result = await userCollection.find(query).toArray();
       res.send(result);
